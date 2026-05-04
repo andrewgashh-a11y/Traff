@@ -355,23 +355,23 @@ SETTING_KEYS = ['vk_token', 'openrouter_api_key', 'telegram_bot_token', 'telegra
 
 @app.route('/api/settings', methods=['GET'])
 def get_settings():
-    result = {}
-    for key in SETTING_KEYS:
-        val = get_setting(key)
-        # Mask tokens for display
-        if val and key in ('vk_token', 'openrouter_api_key', 'telegram_bot_token'):
-            result[key] = val[:6] + '...' + val[-4:] if len(val) > 10 else '***'
-        else:
-            result[key] = val
-    return jsonify(result)
+    return jsonify({key: get_setting(key) for key in SETTING_KEYS})
 
 
 @app.route('/api/settings', methods=['POST'])
 def save_settings():
     data = request.json
     for key in SETTING_KEYS:
-        if key in data and data[key] and not data[key].endswith('...'):
+        if key in data and data[key]:
             set_setting(key, data[key])
+    return jsonify({'ok': True})
+
+
+@app.route('/api/settings/<key>', methods=['DELETE'])
+def delete_setting_key(key):
+    if key not in SETTING_KEYS:
+        return jsonify({'error': 'Unknown key'}), 400
+    set_setting(key, '')
     return jsonify({'ok': True})
 
 

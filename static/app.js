@@ -52,8 +52,10 @@ const TRANSLATIONS = {
     enterKey:         'Введите ключ',
     save:             'Сохранить',
     test:             'Тест',
+    clear:            'Очистить',
     testTelegram:     'Тест Telegram',
     saved:            '✓ Сохранено',
+    cleared:          '✓ Удалено',
     connected:        '✓ Подключено',
     connectedAs:      '✓ Подключено как',
     msgSent:          '✓ Сообщение отправлено',
@@ -108,8 +110,10 @@ const TRANSLATIONS = {
     enterKey:         'Enter key',
     save:             'Save',
     test:             'Test',
+    clear:            'Clear',
     testTelegram:     'Test Telegram',
     saved:            '✓ Saved',
+    cleared:          '✓ Cleared',
     connected:        '✓ Connected',
     connectedAs:      '✓ Connected as',
     msgSent:          '✓ Message sent',
@@ -166,6 +170,7 @@ document.addEventListener('DOMContentLoaded', () => {
   applyI18n();
   loadGroups();
   loadStats();
+  loadSettings();
   setupForm();
   setupSettings();
   resumeActiveJob();
@@ -394,11 +399,43 @@ function setupSettings() {
   });
 }
 
-async function saveSetting(key, inputId) {
+async function loadSettings() {
+  const res = await api('/api/settings');
+  if (!res.ok) return;
+  const s = await res.json();
+  // Pre-fill inputs; password inputs will mask the value automatically
+  const map = {
+    vk_token: 'vkToken',
+    openrouter_api_key: 'orKey',
+    telegram_bot_token: 'tgToken',
+    telegram_channel_id: 'tgChannel',
+  };
+  for (const [key, inputId] of Object.entries(map)) {
+    const input = document.getElementById(inputId);
+    if (input && s[key]) input.value = s[key];
+  }
+}
+
+async function saveSetting(key, inputId, resultId) {
   const val = document.getElementById(inputId).value.trim();
-  if (!val) return;
-  await api('/api/settings', { method: 'POST', json: { [key]: val } });
-  showResult(inputId + 'Saved', t('saved'), 'ok');
+  if (!val) { showResult(resultId, '⚠ ' + (uiLang === 'RU' ? 'Поле пустое' : 'Field is empty'), 'err'); return; }
+  const res = await api('/api/settings', { method: 'POST', json: { [key]: val } });
+  if (res.ok) {
+    showResult(resultId, t('saved'), 'ok');
+  } else {
+    const data = await res.json();
+    showResult(resultId, '✗ ' + (data.error || 'Error'), 'err');
+  }
+}
+
+async function deleteSetting(key, inputId, resultId) {
+  const res = await api(`/api/settings/${key}`, { method: 'DELETE' });
+  if (res.ok) {
+    document.getElementById(inputId).value = '';
+    showResult(resultId, t('cleared'), 'ok');
+  } else {
+    showResult(resultId, '✗ Error', 'err');
+  }
 }
 
 async function testVK() {

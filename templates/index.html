@@ -160,9 +160,10 @@
       <div class="setting-row">
         <label data-i18n="vkToken">VK API Token</label>
         <div class="setting-controls">
-          <input type="password" id="vkToken" class="input" data-i18n-ph="enterToken" placeholder="Введите токен" />
-          <button class="btn btn-sm" data-i18n="save" onclick="saveSetting('vk_token', 'vkToken')">Сохранить</button>
+          <input type="password" id="vkToken" class="input" data-i18n-ph="enterToken" placeholder="Введите токен" autocomplete="off" />
+          <button class="btn btn-sm" data-i18n="save" onclick="saveSetting('vk_token','vkToken','vkResult')">Сохранить</button>
           <button class="btn btn-sm btn-ghost" data-i18n="test" onclick="testVK()">Тест</button>
+          <button class="btn btn-sm btn-danger" data-i18n="clear" onclick="deleteSetting('vk_token','vkToken','vkResult')">Очистить</button>
         </div>
         <span class="setting-result" id="vkResult"></span>
       </div>
@@ -170,9 +171,10 @@
       <div class="setting-row">
         <label data-i18n="orKey">OpenRouter API Key</label>
         <div class="setting-controls">
-          <input type="password" id="orKey" class="input" data-i18n-ph="enterKey" placeholder="Введите ключ" />
-          <button class="btn btn-sm" data-i18n="save" onclick="saveSetting('openrouter_api_key', 'orKey')">Сохранить</button>
+          <input type="password" id="orKey" class="input" data-i18n-ph="enterKey" placeholder="Введите ключ" autocomplete="off" />
+          <button class="btn btn-sm" data-i18n="save" onclick="saveSetting('openrouter_api_key','orKey','orResult')">Сохранить</button>
           <button class="btn btn-sm btn-ghost" data-i18n="test" onclick="testOR()">Тест</button>
+          <button class="btn btn-sm btn-danger" data-i18n="clear" onclick="deleteSetting('openrouter_api_key','orKey','orResult')">Очистить</button>
         </div>
         <span class="setting-result" id="orResult"></span>
       </div>
@@ -180,17 +182,21 @@
       <div class="setting-row">
         <label data-i18n="tgToken">Telegram Bot Token</label>
         <div class="setting-controls">
-          <input type="password" id="tgToken" class="input" data-i18n-ph="enterToken" placeholder="Введите токен" />
-          <button class="btn btn-sm" data-i18n="save" onclick="saveSetting('telegram_bot_token', 'tgToken')">Сохранить</button>
+          <input type="password" id="tgToken" class="input" data-i18n-ph="enterToken" placeholder="Введите токен" autocomplete="off" />
+          <button class="btn btn-sm" data-i18n="save" onclick="saveSetting('telegram_bot_token','tgToken','tgTokenResult')">Сохранить</button>
+          <button class="btn btn-sm btn-danger" data-i18n="clear" onclick="deleteSetting('telegram_bot_token','tgToken','tgTokenResult')">Очистить</button>
         </div>
+        <span class="setting-result" id="tgTokenResult"></span>
       </div>
 
       <div class="setting-row">
         <label data-i18n="tgChannel">Telegram Channel ID</label>
         <div class="setting-controls">
-          <input type="text" id="tgChannel" class="input" placeholder="-100xxxxxxxxxx" />
-          <button class="btn btn-sm" data-i18n="save" onclick="saveSetting('telegram_channel_id', 'tgChannel')">Сохранить</button>
+          <input type="text" id="tgChannel" class="input" placeholder="-100xxxxxxxxxx" autocomplete="off" />
+          <button class="btn btn-sm" data-i18n="save" onclick="saveSetting('telegram_channel_id','tgChannel','tgChannelResult')">Сохранить</button>
+          <button class="btn btn-sm btn-danger" data-i18n="clear" onclick="deleteSetting('telegram_channel_id','tgChannel','tgChannelResult')">Очистить</button>
         </div>
+        <span class="setting-result" id="tgChannelResult"></span>
       </div>
 
       <div class="setting-actions">
