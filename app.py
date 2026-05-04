@@ -140,13 +140,9 @@ def run_job(job_id):
             out_path = os.path.join(app.config['TMP_DIR'], f'out_{job_id}_{idx}.mp4')
 
             try:
-                # Step 1: Download
+                # Step 1: Download (yt-dlp → HLS → direct mp4)
                 add_log(job_id, 'info', f'[{idx}] Downloading video')
-                dl_url = vk_service.get_video_download_url(vk_video)
-                if not dl_url:
-                    add_log(job_id, 'error', f'[{idx}] No direct URL available (private/restricted)')
-                    continue
-                vk_service.download_video(dl_url, raw_path)
+                vk_service.download_video(vk_video, raw_path, vk_token=vk_token)
                 add_log(job_id, 'success', f'[{idx}] Downloaded')
 
                 # Step 2: FFmpeg
