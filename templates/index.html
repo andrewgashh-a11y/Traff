@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -17,9 +17,15 @@
       <span class="logo-icon">⚡</span>
       <span class="logo-text">VK Reels Trafficker</span>
     </div>
-    <div class="header-status" id="botStatus">
-      <span class="status-dot"></span>
-      <span class="status-label">Ready</span>
+    <div class="header-right">
+      <div class="ui-lang-toggle" id="uiLangToggle">
+        <button type="button" class="ui-lang-btn active" data-ui-lang="RU">RU</button>
+        <button type="button" class="ui-lang-btn" data-ui-lang="EN">EN</button>
+      </div>
+      <div class="header-status" id="botStatus">
+        <span class="status-dot"></span>
+        <span class="status-label" data-i18n="ready">Готово</span>
+      </div>
     </div>
   </div>
 </header>
@@ -33,56 +39,56 @@
     <!-- GROUPS -->
     <section class="card" id="groupsSection">
       <div class="card-header">
-        <h2>Saved VK Groups</h2>
-        <button class="btn btn-sm" id="addGroupBtn">+ Add Group</button>
+        <h2 data-i18n="savedGroups">Группы ВКонтакте</h2>
+        <button class="btn btn-sm" id="addGroupBtn" data-i18n="addGroup">+ Добавить</button>
       </div>
 
       <div class="add-group-form hidden" id="addGroupForm">
-        <input type="text" id="newGroupUrl" placeholder="vk.com/groupname" class="input" />
-        <button class="btn btn-accent" id="addGroupSubmit">Add</button>
-        <button class="btn btn-ghost" id="addGroupCancel">Cancel</button>
+        <input type="text" id="newGroupUrl" data-i18n-ph="groupUrlPlaceholder" placeholder="vk.com/groupname" class="input" />
+        <button class="btn btn-accent" id="addGroupSubmit" data-i18n="add">Добавить</button>
+        <button class="btn btn-ghost" id="addGroupCancel" data-i18n="cancel">Отмена</button>
       </div>
 
       <div class="groups-list" id="groupsList">
-        <div class="empty-state">Loading groups…</div>
+        <div class="empty-state" data-i18n="loadingGroups">Загрузка групп…</div>
       </div>
     </section>
 
     <!-- LAUNCH -->
     <section class="card" id="launchSection">
       <div class="card-header">
-        <h2>Launch Job</h2>
+        <h2 data-i18n="launchJob">Запуск задачи</h2>
       </div>
 
       <form id="jobForm" class="job-form">
         <div class="form-group">
-          <label>Group</label>
+          <label data-i18n="group">Группа</label>
           <select id="groupSelect" class="input">
-            <option value="">— paste URL below —</option>
+            <option value="" data-i18n="pasteUrlBelow">— вставьте ссылку ниже —</option>
           </select>
         </div>
 
         <div class="form-group" id="customUrlGroup">
-          <label>Or paste URL</label>
+          <label data-i18n="orPasteUrl">Или вставьте ссылку</label>
           <input type="text" id="customGroupUrl" class="input" placeholder="vk.com/groupname" />
         </div>
 
         <div class="form-group">
-          <label>Filter</label>
+          <label data-i18n="filter">Фильтр</label>
           <div class="btn-group" id="filterGroup">
-            <button type="button" class="btn btn-toggle active" data-value="new">New</button>
-            <button type="button" class="btn btn-toggle" data-value="popular">Popular</button>
-            <button type="button" class="btn btn-toggle" data-value="random">Random</button>
+            <button type="button" class="btn btn-toggle active" data-value="new" data-i18n="filterNew">Новые</button>
+            <button type="button" class="btn btn-toggle" data-value="popular" data-i18n="filterPopular">Популярные</button>
+            <button type="button" class="btn btn-toggle" data-value="random" data-i18n="filterRandom">Случайные</button>
           </div>
         </div>
 
         <div class="form-group">
-          <label>Videos: <span id="videoCountLabel">5</span></label>
+          <label><span data-i18n="videos">Видео</span>: <span id="videoCountLabel">5</span></label>
           <input type="range" id="videoCount" min="1" max="10" value="5" class="slider" />
         </div>
 
         <div class="form-group">
-          <label>Language</label>
+          <label data-i18n="genLang">Язык генерации</label>
           <div class="lang-toggle" id="langToggle">
             <button type="button" class="lang-btn active" data-lang="RU">RU</button>
             <button type="button" class="lang-btn" data-lang="EN">EN</button>
@@ -90,7 +96,7 @@
         </div>
 
         <button type="submit" class="btn btn-primary btn-full" id="startBtn">
-          <span class="btn-text">▶ Start Job</span>
+          <span class="btn-text" data-i18n="startJob">▶ Запустить</span>
         </button>
       </form>
     </section>
@@ -100,7 +106,7 @@
   <section class="card" id="logSection">
     <div class="card-header">
       <h2>
-        Live Log
+        <span data-i18n="liveLog">Лог обработки</span>
         <span class="pulse-dot hidden" id="activePulse"></span>
       </h2>
       <div class="progress-wrap" id="progressWrap" style="display:none">
@@ -111,33 +117,33 @@
       </div>
     </div>
     <div class="log-output" id="logOutput">
-      <div class="log-placeholder">No active job. Start one above.</div>
+      <div class="log-placeholder" data-i18n="noActiveJob">Нет активных задач. Запустите выше.</div>
     </div>
   </section>
 
   <!-- STATS -->
   <section class="stats-section">
-    <h2 class="section-title">Statistics</h2>
+    <h2 class="section-title" data-i18n="statistics">Статистика</h2>
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-icon">🤖</div>
         <div class="stat-value" id="statOrToday">—</div>
-        <div class="stat-label">OpenRouter requests today</div>
+        <div class="stat-label" data-i18n="statOrToday">OpenRouter запросов сегодня</div>
       </div>
       <div class="stat-card">
         <div class="stat-icon">🎬</div>
         <div class="stat-value" id="statVideosToday">—</div>
-        <div class="stat-label">Videos today</div>
+        <div class="stat-label" data-i18n="statVideosToday">Видео сегодня</div>
       </div>
       <div class="stat-card">
         <div class="stat-icon">📦</div>
         <div class="stat-value" id="statVideosTotal">—</div>
-        <div class="stat-label">Videos total</div>
+        <div class="stat-label" data-i18n="statVideosTotal">Видео всего</div>
       </div>
       <div class="stat-card">
         <div class="stat-icon">🕐</div>
         <div class="stat-value" id="statLastActivity">—</div>
-        <div class="stat-label">Last activity</div>
+        <div class="stat-label" data-i18n="statLastActivity">Последняя активность</div>
       </div>
     </div>
   </section>
@@ -145,50 +151,50 @@
   <!-- SETTINGS -->
   <section class="card settings-section" id="settingsSection">
     <button class="settings-toggle" id="settingsToggle">
-      <h2>Settings</h2>
+      <h2 data-i18n="settings">Настройки</h2>
       <span class="chevron" id="settingsChevron">▼</span>
     </button>
 
     <div class="settings-body hidden" id="settingsBody">
 
       <div class="setting-row">
-        <label>VK API Token</label>
+        <label data-i18n="vkToken">VK API Token</label>
         <div class="setting-controls">
-          <input type="password" id="vkToken" class="input" placeholder="Enter token" />
-          <button class="btn btn-sm" onclick="saveSetting('vk_token', 'vkToken')">Save</button>
-          <button class="btn btn-sm btn-ghost" onclick="testVK()">Test</button>
+          <input type="password" id="vkToken" class="input" data-i18n-ph="enterToken" placeholder="Введите токен" />
+          <button class="btn btn-sm" data-i18n="save" onclick="saveSetting('vk_token', 'vkToken')">Сохранить</button>
+          <button class="btn btn-sm btn-ghost" data-i18n="test" onclick="testVK()">Тест</button>
         </div>
         <span class="setting-result" id="vkResult"></span>
       </div>
 
       <div class="setting-row">
-        <label>OpenRouter API Key</label>
+        <label data-i18n="orKey">OpenRouter API Key</label>
         <div class="setting-controls">
-          <input type="password" id="orKey" class="input" placeholder="Enter key" />
-          <button class="btn btn-sm" onclick="saveSetting('openrouter_api_key', 'orKey')">Save</button>
-          <button class="btn btn-sm btn-ghost" onclick="testOR()">Test</button>
+          <input type="password" id="orKey" class="input" data-i18n-ph="enterKey" placeholder="Введите ключ" />
+          <button class="btn btn-sm" data-i18n="save" onclick="saveSetting('openrouter_api_key', 'orKey')">Сохранить</button>
+          <button class="btn btn-sm btn-ghost" data-i18n="test" onclick="testOR()">Тест</button>
         </div>
         <span class="setting-result" id="orResult"></span>
       </div>
 
       <div class="setting-row">
-        <label>Telegram Bot Token</label>
+        <label data-i18n="tgToken">Telegram Bot Token</label>
         <div class="setting-controls">
-          <input type="password" id="tgToken" class="input" placeholder="Enter token" />
-          <button class="btn btn-sm" onclick="saveSetting('telegram_bot_token', 'tgToken')">Save</button>
+          <input type="password" id="tgToken" class="input" data-i18n-ph="enterToken" placeholder="Введите токен" />
+          <button class="btn btn-sm" data-i18n="save" onclick="saveSetting('telegram_bot_token', 'tgToken')">Сохранить</button>
         </div>
       </div>
 
       <div class="setting-row">
-        <label>Telegram Channel ID</label>
+        <label data-i18n="tgChannel">Telegram Channel ID</label>
         <div class="setting-controls">
           <input type="text" id="tgChannel" class="input" placeholder="-100xxxxxxxxxx" />
-          <button class="btn btn-sm" onclick="saveSetting('telegram_channel_id', 'tgChannel')">Save</button>
+          <button class="btn btn-sm" data-i18n="save" onclick="saveSetting('telegram_channel_id', 'tgChannel')">Сохранить</button>
         </div>
       </div>
 
       <div class="setting-actions">
-        <button class="btn btn-accent" onclick="testTelegram()">📨 Test Telegram</button>
+        <button class="btn btn-accent" onclick="testTelegram()">📨 <span data-i18n="testTelegram">Тест Telegram</span></button>
         <span class="setting-result" id="tgResult"></span>
       </div>
 

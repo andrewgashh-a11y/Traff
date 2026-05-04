@@ -1,5 +1,158 @@
 'use strict';
 
+// ── Translations ───────────────────────────────────────────────────────────
+const TRANSLATIONS = {
+  RU: {
+    ready:            'Готово',
+    processing:       'Обработка…',
+    done:             'Готово',
+    error:            'Ошибка',
+    savedGroups:      'Группы ВКонтакте',
+    addGroup:         '+ Добавить',
+    add:              'Добавить',
+    adding:           'Добавление…',
+    cancel:           'Отмена',
+    loadingGroups:    'Загрузка групп…',
+    noGroups:         'Нет групп. Добавьте выше.',
+    groupUrlPlaceholder: 'vk.com/groupname',
+    neverUsed:        'Не использовалась',
+    lastUsed:         'Последний: ',
+    pinTitle:         'Закрепить',
+    unpinTitle:       'Открепить',
+    deleteTitle:      'Удалить',
+    confirmDelete:    'Удалить эту группу?',
+    launchJob:        'Запуск задачи',
+    group:            'Группа',
+    pasteUrlBelow:    '— вставьте ссылку ниже —',
+    orPasteUrl:       'Или вставьте ссылку',
+    filter:           'Фильтр',
+    filterNew:        'Новые',
+    filterPopular:    'Популярные',
+    filterRandom:     'Случайные',
+    videos:           'Видео',
+    genLang:          'Язык генерации',
+    startJob:         '▶ Запустить',
+    starting:         'Запуск…',
+    alertSelectGroup: 'Выберите группу или вставьте ссылку',
+    alertFailedAdd:   'Не удалось добавить группу',
+    alertFailedStart: 'Не удалось запустить задачу',
+    liveLog:          'Лог обработки',
+    noActiveJob:      'Нет активных задач. Запустите выше.',
+    statistics:       'Статистика',
+    statOrToday:      'OpenRouter запросов сегодня',
+    statVideosToday:  'Видео сегодня',
+    statVideosTotal:  'Видео всего',
+    statLastActivity: 'Последняя активность',
+    settings:         'Настройки',
+    vkToken:          'VK API Token',
+    orKey:            'OpenRouter API Key',
+    tgToken:          'Telegram Bot Token',
+    tgChannel:        'Telegram Channel ID',
+    enterToken:       'Введите токен',
+    enterKey:         'Введите ключ',
+    save:             'Сохранить',
+    test:             'Тест',
+    testTelegram:     'Тест Telegram',
+    saved:            '✓ Сохранено',
+    connected:        '✓ Подключено',
+    connectedAs:      '✓ Подключено как',
+    msgSent:          '✓ Сообщение отправлено',
+  },
+  EN: {
+    ready:            'Ready',
+    processing:       'Processing…',
+    done:             'Done',
+    error:            'Error',
+    savedGroups:      'Saved VK Groups',
+    addGroup:         '+ Add Group',
+    add:              'Add',
+    adding:           'Adding…',
+    cancel:           'Cancel',
+    loadingGroups:    'Loading groups…',
+    noGroups:         'No groups yet. Add one above.',
+    groupUrlPlaceholder: 'vk.com/groupname',
+    neverUsed:        'Never used',
+    lastUsed:         'Last: ',
+    pinTitle:         'Pin',
+    unpinTitle:       'Unpin',
+    deleteTitle:      'Delete',
+    confirmDelete:    'Delete this group?',
+    launchJob:        'Launch Job',
+    group:            'Group',
+    pasteUrlBelow:    '— paste URL below —',
+    orPasteUrl:       'Or paste URL',
+    filter:           'Filter',
+    filterNew:        'New',
+    filterPopular:    'Popular',
+    filterRandom:     'Random',
+    videos:           'Videos',
+    genLang:          'Language',
+    startJob:         '▶ Start Job',
+    starting:         'Starting…',
+    alertSelectGroup: 'Select a group or paste a URL',
+    alertFailedAdd:   'Failed to add group',
+    alertFailedStart: 'Failed to start job',
+    liveLog:          'Live Log',
+    noActiveJob:      'No active job. Start one above.',
+    statistics:       'Statistics',
+    statOrToday:      'OpenRouter requests today',
+    statVideosToday:  'Videos today',
+    statVideosTotal:  'Videos total',
+    statLastActivity: 'Last activity',
+    settings:         'Settings',
+    vkToken:          'VK API Token',
+    orKey:            'OpenRouter API Key',
+    tgToken:          'Telegram Bot Token',
+    tgChannel:        'Telegram Channel ID',
+    enterToken:       'Enter token',
+    enterKey:         'Enter key',
+    save:             'Save',
+    test:             'Test',
+    testTelegram:     'Test Telegram',
+    saved:            '✓ Saved',
+    connected:        '✓ Connected',
+    connectedAs:      '✓ Connected as',
+    msgSent:          '✓ Message sent',
+  },
+};
+
+// ── i18n state ─────────────────────────────────────────────────────────────
+let uiLang = localStorage.getItem('uiLang') || 'RU';
+
+function t(key) {
+  return (TRANSLATIONS[uiLang] || TRANSLATIONS.RU)[key] || key;
+}
+
+function applyI18n() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    el.textContent = t(el.dataset.i18n);
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+    el.placeholder = t(el.dataset.i18nPh);
+  });
+  // Keep the select first option in sync
+  const firstOpt = document.querySelector('#groupSelect option[value=""]');
+  if (firstOpt) firstOpt.textContent = t('pasteUrlBelow');
+
+  document.documentElement.lang = uiLang === 'RU' ? 'ru' : 'en';
+}
+
+function setupUiLangToggle() {
+  document.getElementById('uiLangToggle').addEventListener('click', e => {
+    const btn = e.target.closest('.ui-lang-btn');
+    if (!btn) return;
+    uiLang = btn.dataset.uiLang;
+    localStorage.setItem('uiLang', uiLang);
+    document.querySelectorAll('.ui-lang-btn').forEach(b => b.classList.toggle('active', b.dataset.uiLang === uiLang));
+    applyI18n();
+    // Re-render groups so dynamic strings update too
+    loadGroups();
+  });
+
+  // Restore active state from saved preference
+  document.querySelectorAll('.ui-lang-btn').forEach(b => b.classList.toggle('active', b.dataset.uiLang === uiLang));
+}
+
 // ── State ──────────────────────────────────────────────────────────────────
 let activeJobId = null;
 let pollInterval = null;
@@ -9,6 +162,8 @@ let selectedLang = 'RU';
 
 // ── Init ───────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+  setupUiLangToggle();
+  applyI18n();
   loadGroups();
   loadStats();
   setupForm();
@@ -28,7 +183,7 @@ async function loadGroups() {
 function renderGroups(groups) {
   const el = document.getElementById('groupsList');
   if (!groups.length) {
-    el.innerHTML = '<div class="empty-state">No groups yet. Add one above.</div>';
+    el.innerHTML = `<div class="empty-state">${escHtml(t('noGroups'))}</div>`;
     return;
   }
   el.innerHTML = groups.map(g => `
@@ -39,13 +194,13 @@ function renderGroups(groups) {
       <div class="group-info">
         <div class="group-name">${escHtml(g.name)}</div>
         <div class="group-meta">
-          ${g.total_parsed} videos · ${g.last_used_at ? 'Last: ' + fmtDate(g.last_used_at) : 'Never used'}
+          ${g.total_parsed} · ${g.last_used_at ? t('lastUsed') + fmtDate(g.last_used_at) : t('neverUsed')}
         </div>
       </div>
       <div class="group-actions">
-        <button class="btn btn-sm ${g.pinned ? 'btn-accent' : ''}" title="${g.pinned ? 'Unpin' : 'Pin'}"
+        <button class="btn btn-sm ${g.pinned ? 'btn-accent' : ''}" title="${g.pinned ? t('unpinTitle') : t('pinTitle')}"
           onclick="togglePin(${g.id})">${g.pinned ? '📌' : '📍'}</button>
-        <button class="btn btn-sm btn-danger" title="Delete" onclick="deleteGroup(${g.id})">✕</button>
+        <button class="btn btn-sm btn-danger" title="${t('deleteTitle')}" onclick="deleteGroup(${g.id})">✕</button>
       </div>
     </div>
   `).join('');
@@ -54,7 +209,7 @@ function renderGroups(groups) {
 function populateGroupSelect(groups) {
   const sel = document.getElementById('groupSelect');
   const current = sel.value;
-  sel.innerHTML = '<option value="">— paste URL below —</option>' +
+  sel.innerHTML = `<option value="">${escHtml(t('pasteUrlBelow'))}</option>` +
     groups.map(g => `<option value="${g.id}">${escHtml(g.name)}</option>`).join('');
   if (current) sel.value = current;
 }
@@ -65,7 +220,7 @@ async function togglePin(id) {
 }
 
 async function deleteGroup(id) {
-  if (!confirm('Delete this group?')) return;
+  if (!confirm(t('confirmDelete'))) return;
   await api(`/api/groups/${id}`, { method: 'DELETE' });
   loadGroups();
 }
@@ -82,10 +237,10 @@ document.getElementById('addGroupSubmit').addEventListener('click', async () => 
   const url = document.getElementById('newGroupUrl').value.trim();
   if (!url) return;
   const btn = document.getElementById('addGroupSubmit');
-  btn.textContent = 'Adding…';
+  btn.textContent = t('adding');
   btn.disabled = true;
   const res = await api('/api/groups', { method: 'POST', json: { vk_url: url } });
-  btn.textContent = 'Add';
+  btn.textContent = t('add');
   btn.disabled = false;
   if (res.ok) {
     document.getElementById('newGroupUrl').value = '';
@@ -93,13 +248,12 @@ document.getElementById('addGroupSubmit').addEventListener('click', async () => 
     loadGroups();
   } else {
     const data = await res.json();
-    alert(data.error || 'Failed to add group');
+    alert(data.error || t('alertFailedAdd'));
   }
 });
 
 // ── Job form ───────────────────────────────────────────────────────────────
 function setupForm() {
-  // Filter toggles
   document.getElementById('filterGroup').addEventListener('click', e => {
     const btn = e.target.closest('.btn-toggle');
     if (!btn) return;
@@ -108,7 +262,6 @@ function setupForm() {
     selectedFilter = btn.dataset.value;
   });
 
-  // Lang toggle
   document.getElementById('langToggle').addEventListener('click', e => {
     const btn = e.target.closest('.lang-btn');
     if (!btn) return;
@@ -117,32 +270,28 @@ function setupForm() {
     selectedLang = btn.dataset.lang;
   });
 
-  // Slider
   const slider = document.getElementById('videoCount');
   slider.addEventListener('input', () => {
     document.getElementById('videoCountLabel').textContent = slider.value;
   });
 
-  // Group select — hide custom URL when group selected
   document.getElementById('groupSelect').addEventListener('change', e => {
-    const custom = document.getElementById('customUrlGroup');
-    custom.style.display = e.target.value ? 'none' : '';
+    document.getElementById('customUrlGroup').style.display = e.target.value ? 'none' : '';
   });
 
-  // Submit
   document.getElementById('jobForm').addEventListener('submit', async e => {
     e.preventDefault();
     const groupId = document.getElementById('groupSelect').value;
     const groupUrl = document.getElementById('customGroupUrl').value.trim();
 
     if (!groupId && !groupUrl) {
-      alert('Select a group or paste a URL');
+      alert(t('alertSelectGroup'));
       return;
     }
 
     const btn = document.getElementById('startBtn');
     btn.disabled = true;
-    btn.querySelector('.btn-text').textContent = 'Starting…';
+    btn.querySelector('.btn-text').textContent = t('starting');
 
     const res = await api('/api/jobs', {
       method: 'POST',
@@ -156,14 +305,14 @@ function setupForm() {
     });
 
     btn.disabled = false;
-    btn.querySelector('.btn-text').textContent = '▶ Start Job';
+    btn.querySelector('.btn-text').textContent = t('startJob');
 
     if (res.ok) {
       const job = await res.json();
       startPolling(job.id);
     } else {
       const data = await res.json();
-      alert(data.error || 'Failed to start job');
+      alert(data.error || t('alertFailedStart'));
     }
   });
 }
@@ -176,7 +325,7 @@ function startPolling(jobId) {
   document.getElementById('logOutput').innerHTML = '';
   document.getElementById('progressWrap').style.display = 'flex';
   document.getElementById('activePulse').classList.remove('hidden');
-  document.getElementById('botStatus').querySelector('.status-label').textContent = 'Processing…';
+  document.getElementById('botStatus').querySelector('.status-label').textContent = t('processing');
 
   pollInterval = setInterval(() => fetchLogs(jobId), 2000);
   fetchLogs(jobId);
@@ -197,7 +346,6 @@ async function fetchLogs(jobId) {
   });
   if (data.logs.length) output.scrollTop = output.scrollHeight;
 
-  // Update progress
   const job = data.job;
   if (job.videos_total > 0) {
     const pct = Math.round((job.videos_done / job.videos_total) * 100);
@@ -205,12 +353,12 @@ async function fetchLogs(jobId) {
     document.getElementById('progressLabel').textContent = `${job.videos_done} / ${job.videos_total}`;
   }
 
-  // Stop when done
   if (job.status === 'done' || job.status === 'error') {
     clearInterval(pollInterval);
     pollInterval = null;
     document.getElementById('activePulse').classList.add('hidden');
-    document.getElementById('botStatus').querySelector('.status-label').textContent = job.status === 'done' ? 'Done' : 'Error';
+    document.getElementById('botStatus').querySelector('.status-label').textContent =
+      job.status === 'done' ? t('done') : t('error');
     loadStats();
   }
 }
@@ -250,21 +398,21 @@ async function saveSetting(key, inputId) {
   const val = document.getElementById(inputId).value.trim();
   if (!val) return;
   await api('/api/settings', { method: 'POST', json: { [key]: val } });
-  showResult(inputId + 'Saved', '✓ Saved', 'ok');
+  showResult(inputId + 'Saved', t('saved'), 'ok');
 }
 
 async function testVK() {
   const token = document.getElementById('vkToken').value.trim();
   const res = await api('/api/settings/test/vk', { method: 'POST', json: { token } });
   const data = await res.json();
-  showResult('vkResult', data.ok ? `✓ Connected as ${data.user}` : `✗ ${data.error}`, data.ok ? 'ok' : 'err');
+  showResult('vkResult', data.ok ? `${t('connectedAs')} ${data.user}` : `✗ ${data.error}`, data.ok ? 'ok' : 'err');
 }
 
 async function testOR() {
   const api_key = document.getElementById('orKey').value.trim();
   const res = await api('/api/settings/test/openrouter', { method: 'POST', json: { api_key } });
   const data = await res.json();
-  showResult('orResult', data.ok ? '✓ Connected' : `✗ ${data.error}`, data.ok ? 'ok' : 'err');
+  showResult('orResult', data.ok ? t('connected') : `✗ ${data.error}`, data.ok ? 'ok' : 'err');
 }
 
 async function testTelegram() {
@@ -272,7 +420,7 @@ async function testTelegram() {
   const channel_id = document.getElementById('tgChannel').value.trim();
   const res = await api('/api/settings/test/telegram', { method: 'POST', json: { token, channel_id } });
   const data = await res.json();
-  showResult('tgResult', data.ok ? '✓ Message sent' : `✗ ${data.error}`, data.ok ? 'ok' : 'err');
+  showResult('tgResult', data.ok ? t('msgSent') : `✗ ${data.error}`, data.ok ? 'ok' : 'err');
 }
 
 function showResult(id, text, cls) {
@@ -285,10 +433,7 @@ function showResult(id, text, cls) {
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 async function api(url, opts = {}) {
-  const options = {
-    method: opts.method || 'GET',
-    headers: {},
-  };
+  const options = { method: opts.method || 'GET', headers: {} };
   if (opts.json) {
     options.body = JSON.stringify(opts.json);
     options.headers['Content-Type'] = 'application/json';
