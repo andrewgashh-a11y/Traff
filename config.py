@@ -3,12 +3,14 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+_BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-secret-key')
     PORT = int(os.environ.get('PORT', 5000))
 
-    # Database
-    DATA_DIR = os.environ.get('DATA_DIR', './data')
+    # Database — always absolute so SQLite can find/create the file
+    DATA_DIR = os.path.abspath(os.environ.get('DATA_DIR', os.path.join(_BASE_DIR, 'data')))
     SQLALCHEMY_DATABASE_URI = f"sqlite:///{DATA_DIR}/db.sqlite"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
