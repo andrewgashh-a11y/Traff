@@ -1,5 +1,8 @@
 [phases.setup]
 nixPkgs = ["ffmpeg"]
 
+[phases.install]
+cmds = ["python3 -m venv --copies /opt/venv && /opt/venv/bin/pip install -r requirements.txt"]
+
 [start]
-cmd = "python app.py"
+cmd = "/opt/venv/bin/python app.py"
