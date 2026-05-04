@@ -149,6 +149,27 @@ def run_job(job_id):
                     continue
                 add_log(job_id, 'success', f'[{idx}] Downloaded')
 
+                # Probe downloaded file so we can see what yt-dlp produced
+                import json, subprocess as _sp
+                _pr = _sp.run(
+                    ['ffprobe', '-v', 'quiet', '-print_format', 'json',
+                     '-show_format', '-show_streams', raw_path],
+                    capture_output=True, text=True,
+                )
+                if _pr.returncode == 0:
+                    _info = json.loads(_pr.stdout)
+                    _fmt  = _info.get('format', {})
+                    _vid  = next((s for s in _info.get('streams', []) if s.get('codec_type') == 'video'), {})
+                    add_log(job_id, 'info',
+                        f'[{idx}] File: codec={_vid.get("codec_name","?")} '
+                        f'{_vid.get("width","?")}x{_vid.get("height","?")} '
+                        f'dur={_fmt.get("duration","?")}s '
+                        f'pix={_vid.get("pix_fmt","?")} '
+                        f'size={round(int(_fmt.get("size",0))/1048576,1)}MB'
+                    )
+                else:
+                    add_log(job_id, 'info', f'[{idx}] ffprobe: {_pr.stderr[:120]}')
+
                 # Step 2: FFmpeg
                 add_log(job_id, 'info', f'[{idx}] Processing with FFmpeg')
                 video_service.process_video(raw_path, out_path)
