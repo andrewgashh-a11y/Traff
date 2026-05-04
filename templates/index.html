@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VK Reels Trafficker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-inner">
+    <div class="logo">
+      <span class="logo-icon">⚡</span>
+      <span class="logo-text">VK Reels Trafficker</span>
+    </div>
+    <div class="header-status" id="botStatus">
+      <span class="status-dot"></span>
+      <span class="status-label">Ready</span>
+    </div>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- ROW: Groups + Launch -->
+  <div class="two-col">
+
+    <!-- GROUPS -->
+    <section class="card" id="groupsSection">
+      <div class="card-header">
+        <h2>Saved VK Groups</h2>
+        <button class="btn btn-sm" id="addGroupBtn">+ Add Group</button>
+      </div>
+
+      <div class="add-group-form hidden" id="addGroupForm">
+        <input type="text" id="newGroupUrl" placeholder="vk.com/groupname" class="input" />
+        <button class="btn btn-accent" id="addGroupSubmit">Add</button>
+        <button class="btn btn-ghost" id="addGroupCancel">Cancel</button>
+      </div>
+
+      <div class="groups-list" id="groupsList">
+        <div class="empty-state">Loading groups…</div>
+      </div>
+    </section>
+
+    <!-- LAUNCH -->
+    <section class="card" id="launchSection">
+      <div class="card-header">
+        <h2>Launch Job</h2>
+      </div>
+
+      <form id="jobForm" class="job-form">
+        <div class="form-group">
+          <label>Group</label>
+          <select id="groupSelect" class="input">
+            <option value="">— paste URL below —</option>
+          </select>
+        </div>
+
+        <div class="form-group" id="customUrlGroup">
+          <label>Or paste URL</label>
+          <input type="text" id="customGroupUrl" class="input" placeholder="vk.com/groupname" />
+        </div>
+
+        <div class="form-group">
+          <label>Filter</label>
+          <div class="btn-group" id="filterGroup">
+            <button type="button" class="btn btn-toggle active" data-value="new">New</button>
+            <button type="button" class="btn btn-toggle" data-value="popular">Popular</button>
+            <button type="button" class="btn btn-toggle" data-value="random">Random</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Videos: <span id="videoCountLabel">5</span></label>
+          <input type="range" id="videoCount" min="1" max="10" value="5" class="slider" />
+        </div>
+
+        <div class="form-group">
+          <label>Language</label>
+          <div class="lang-toggle" id="langToggle">
+            <button type="button" class="lang-btn active" data-lang="RU">RU</button>
+            <button type="button" class="lang-btn" data-lang="EN">EN</button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-full" id="startBtn">
+          <span class="btn-text">▶ Start Job</span>
+        </button>
+      </form>
+    </section>
+  </div>
+
+  <!-- LIVE LOG -->
+  <section class="card" id="logSection">
+    <div class="card-header">
+      <h2>
+        Live Log
+        <span class="pulse-dot hidden" id="activePulse"></span>
+      </h2>
+      <div class="progress-wrap" id="progressWrap" style="display:none">
+        <span id="progressLabel">0 / 0</span>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill" style="width:0%"></div>
+        </div>
+      </div>
+    </div>
+    <div class="log-output" id="logOutput">
+      <div class="log-placeholder">No active job. Start one above.</div>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <section class="stats-section">
+    <h2 class="section-title">Statistics</h2>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">🤖</div>
+        <div class="stat-value" id="statOrToday">—</div>
+        <div class="stat-label">OpenRouter requests today</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🎬</div>
+        <div class="stat-value" id="statVideosToday">—</div>
+        <div class="stat-label">Videos today</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">📦</div>
+        <div class="stat-value" id="statVideosTotal">—</div>
+        <div class="stat-label">Videos total</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🕐</div>
+        <div class="stat-value" id="statLastActivity">—</div>
+        <div class="stat-label">Last activity</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section class="card settings-section" id="settingsSection">
+    <button class="settings-toggle" id="settingsToggle">
+      <h2>Settings</h2>
+      <span class="chevron" id="settingsChevron">▼</span>
+    </button>
+
+    <div class="settings-body hidden" id="settingsBody">
+
+      <div class="setting-row">
+        <label>VK API Token</label>
+        <div class="setting-controls">
+          <input type="password" id="vkToken" class="input" placeholder="Enter token" />
+          <button class="btn btn-sm" onclick="saveSetting('vk_token', 'vkToken')">Save</button>
+          <button class="btn btn-sm btn-ghost" onclick="testVK()">Test</button>
+        </div>
+        <span class="setting-result" id="vkResult"></span>
+      </div>
+
+      <div class="setting-row">
+        <label>OpenRouter API Key</label>
+        <div class="setting-controls">
+          <input type="password" id="orKey" class="input" placeholder="Enter key" />
+          <button class="btn btn-sm" onclick="saveSetting('openrouter_api_key', 'orKey')">Save</button>
+          <button class="btn btn-sm btn-ghost" onclick="testOR()">Test</button>
+        </div>
+        <span class="setting-result" id="orResult"></span>
+      </div>
+
+      <div class="setting-row">
+        <label>Telegram Bot Token</label>
+        <div class="setting-controls">
+          <input type="password" id="tgToken" class="input" placeholder="Enter token" />
+          <button class="btn btn-sm" onclick="saveSetting('telegram_bot_token', 'tgToken')">Save</button>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <label>Telegram Channel ID</label>
+        <div class="setting-controls">
+          <input type="text" id="tgChannel" class="input" placeholder="-100xxxxxxxxxx" />
+          <button class="btn btn-sm" onclick="saveSetting('telegram_channel_id', 'tgChannel')">Save</button>
+        </div>
+      </div>
+
+      <div class="setting-actions">
+        <button class="btn btn-accent" onclick="testTelegram()">📨 Test Telegram</button>
+        <span class="setting-result" id="tgResult"></span>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
