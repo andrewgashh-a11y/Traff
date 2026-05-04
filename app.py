@@ -140,9 +140,13 @@ def run_job(job_id):
             out_path = os.path.join(app.config['TMP_DIR'], f'out_{job_id}_{idx}.mp4')
 
             try:
-                # Step 1: Download (yt-dlp → HLS → direct mp4)
-                add_log(job_id, 'info', f'[{idx}] Downloading video')
-                vk_service.download_video(vk_video, raw_path, vk_token=vk_token)
+                # Step 1: Download (fresh API → yt-dlp page → HLS → cached CDN)
+                add_log(job_id, 'info', f'[{idx}] Downloading video (trying all strategies)')
+                try:
+                    vk_service.download_video(vk_video, raw_path, vk_token=vk_token)
+                except RuntimeError as dl_err:
+                    add_log(job_id, 'error', f'[{idx}] Download failed: {dl_err}')
+                    continue
                 add_log(job_id, 'success', f'[{idx}] Downloaded')
 
                 # Step 2: FFmpeg

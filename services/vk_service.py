@@ -1,7 +1,8 @@
+import os
 import random
-import subprocess
 import requests
 import vk_api
+import yt_dlp as ytdl
 
 
 def get_vk_session(token):
@@ -10,7 +11,6 @@ def get_vk_session(token):
 
 
 def resolve_group_id(vk, url):
-    """Extract screen_name from URL and resolve to group info."""
     screen_name = url.rstrip('/').split('/')[-1]
     if screen_name.startswith('club') or screen_name.startswith('public'):
         group_id = screen_name[4:] if screen_name.startswith('club') else screen_name[6:]
@@ -31,19 +31,13 @@ def resolve_group_id(vk, url):
 
 
 def fetch_videos(vk, group_id, count, filter_type):
-    """Fetch videos from a VK group."""
     owner_id = -abs(int(group_id))
-
     videos = []
     offset = 0
     batch = 200
 
     while len(videos) < max(count * 3, 50):
-        result = vk.video.get(
-            owner_id=owner_id,
-            count=batch,
-            offset=offset,
-        )
+        result = vk.video.get(owner_id=owner_id, count=batch, offset=offset)
         items = result.get('items', [])
         if not items:
             break
@@ -64,70 +58,120 @@ def fetch_videos(vk, group_id, count, filter_type):
 
 def download_video(video_item, dest_path, vk_token=None):
     """
-    Download video using multiple strategies in order:
-    1. yt-dlp with VK page URL (handles CDN IP restrictions automatically)
-    2. HLS/DASH stream from files dict via yt-dlp (no srcIp restriction)
-    3. Direct mp4 CDN URL with VK Referer header (last resort)
+    Download with four strategies, returning on first success.
+    Raises RuntimeError listing every failure if all strategies fail.
     """
     owner_id = video_item.get('owner_id', '')
-    video_id = video_item.get('id', '')
-    files = video_item.get('files', {})
+    video_id  = video_item.get('id', '')
     errors = []
 
-    # Strategy 1: yt-dlp with VK page URL
-    page_url = f"https://vk.com/video{owner_id}_{video_id}"
-    try:
-        _ytdlp_download(page_url, dest_path)
-        return
-    except Exception as e:
-        errors.append(f"yt-dlp page: {e}")
+    # Strategy 1: re-fetch fresh CDN URLs from VK API right now so srcIp
+    # matches this process's outgoing IP, then direct-download best quality
+    if vk_token:
+        try:
+            fresh = _refetch_files(vk_token, owner_id, video_id)
+            for q in ('mp4_720', 'mp4_480', 'mp4_360', 'mp4_240', 'mp4_1080'):
+                url = fresh.get(q)
+                if not url:
+                    continue
+                try:
+                    _direct_download(url, dest_path)
+                    return
+                except Exception as e:
+                    errors.append(f"fresh-{q}: {e}")
+        except Exception as e:
+            errors.append(f"re-fetch API: {e}")
 
-    # Strategy 2: HLS/DASH stream (no srcIp restriction on streaming URLs)
-    stream_url = files.get('hls') or files.get('dash_uni') or files.get('dash_sep')
+    # Strategy 2: yt-dlp with vk.com/video page URL (VK extractor fetches
+    # its own fresh CDN URLs bound to yt-dlp's outgoing IP)
+    for page_url in (
+        f"https://vk.com/video{owner_id}_{video_id}",
+        f"https://vk.com/clip{owner_id}_{video_id}",
+    ):
+        try:
+            _ytdlp_download(page_url, dest_path)
+            return
+        except Exception as e:
+            errors.append(f"yt-dlp {page_url}: {e}")
+
+    # Strategy 3: yt-dlp with HLS/DASH stream (no srcIp on manifest URLs)
+    cached_files = video_item.get('files', {})
+    stream_url = (cached_files.get('hls') or
+                  cached_files.get('dash_uni') or
+                  cached_files.get('dash_sep'))
     if stream_url:
         try:
             _ytdlp_download(stream_url, dest_path)
             return
         except Exception as e:
-            errors.append(f"yt-dlp hls/dash: {e}")
+            errors.append(f"yt-dlp HLS/DASH: {e}")
 
-    # Strategy 3: Direct mp4 CDN with Referer (may still fail on IP mismatch)
-    for quality in ('mp4_720', 'mp4_480', 'mp4_360', 'mp4_240', 'mp4_1080'):
-        cdn_url = files.get(quality)
-        if not cdn_url:
+    # Strategy 4: cached CDN URLs as last resort
+    for q in ('mp4_720', 'mp4_480', 'mp4_360', 'mp4_240', 'mp4_1080'):
+        url = cached_files.get(q)
+        if not url:
             continue
         try:
-            _direct_download(cdn_url, dest_path)
+            _direct_download(url, dest_path)
             return
         except Exception as e:
-            errors.append(f"direct {quality}: {e}")
+            errors.append(f"cached-{q}: {e}")
 
-    raise RuntimeError("All download strategies failed:\n" + "\n".join(errors))
+    raise RuntimeError("All strategies failed: " + " | ".join(errors))
+
+
+def _refetch_files(vk_token, owner_id, video_id):
+    """Call VK API right before download to get fresh srcIp-bound URLs."""
+    vk_session = vk_api.VkApi(token=vk_token)
+    vk = vk_session.get_api()
+    videos = vk.video.get(videos=f"{owner_id}_{video_id}", count=1)
+    items = videos.get('items', [])
+    if not items:
+        raise RuntimeError("video not found in fresh API response")
+    return items[0].get('files', {})
 
 
 def _ytdlp_download(url, dest_path):
-    cmd = [
-        'yt-dlp',
-        '--no-check-certificates',
-        '--quiet',
-        '--no-warnings',
-        '-f', 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
-        '--merge-output-format', 'mp4',
-        '--no-playlist',
-        '-o', dest_path,
-        url,
-    ]
-    result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
-    if result.returncode != 0:
-        detail = (result.stderr or result.stdout)[-400:]
-        raise RuntimeError(detail)
+    """Download via yt-dlp Python library — no PATH dependency."""
+    base = dest_path[:-4] if dest_path.lower().endswith('.mp4') else dest_path
+
+    ydl_opts = {
+        'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
+        'outtmpl': base + '.%(ext)s',
+        'merge_output_format': 'mp4',
+        'quiet': True,
+        'no_warnings': True,
+        'noplaylist': True,
+        'socket_timeout': 30,
+        'http_headers': {
+            'User-Agent': (
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+                'AppleWebKit/537.36 (KHTML, like Gecko) '
+                'Chrome/120.0.0.0 Safari/537.36'
+            ),
+            'Referer': 'https://vk.com/',
+        },
+    }
+
+    with ytdl.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([url])
+
+    out = base + '.mp4'
+    if not os.path.exists(out):
+        raise RuntimeError(f"output not found at {out}")
+    if out != dest_path:
+        os.rename(out, dest_path)
 
 
 def _direct_download(url, dest_path):
     headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'User-Agent': (
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+            'AppleWebKit/537.36 (KHTML, like Gecko) '
+            'Chrome/120.0.0.0 Safari/537.36'
+        ),
         'Referer': 'https://vk.com/',
-        'Origin': 'https://vk.com',
+        'Origin':  'https://vk.com',
     }
     with requests.get(url, stream=True, timeout=120, headers=headers) as r:
         r.raise_for_status()
