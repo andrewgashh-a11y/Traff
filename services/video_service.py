@@ -55,8 +55,24 @@ def process_video(input_path, output_path):
 
     result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
     if result.returncode != 0:
-        # Compact full stderr to a single log-friendly line so nothing is cut off
-        compact = ' | '.join(l.strip() for l in result.stderr.splitlines() if l.strip())
-        raise RuntimeError(compact[:2000])
+        lines = [l.strip() for l in result.stderr.splitlines() if l.strip()]
+
+        # Drop the standard FFmpeg header (version, build config, lib versions)
+        # so we don't waste our char budget on noise
+        header_prefixes = (
+            'ffmpeg version', 'built with', 'configuration:',
+            'libavutil', 'libavcodec', 'libavformat', 'libavdevice',
+            'libavfilter', 'libswscale', 'libswresample', 'libpostproc',
+        )
+        body = [l for l in lines if not any(l.startswith(p) for p in header_prefixes)]
+
+        # Prefer lines that look like actual errors
+        err_kw = ('error', 'invalid', 'failed', 'cannot', 'finishing stream',
+                  'output file is empty', 'nothing was encoded',
+                  'conversion failed', 'no such', 'could not', 'unable')
+        errs = [l for l in body if any(k in l.lower() for k in err_kw)]
+
+        detail = ' | '.join(errs[:6]) if errs else ' | '.join(body[-15:])
+        raise RuntimeError(detail[:2000])
 
     return output_path
